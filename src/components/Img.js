@@ -1,10 +1,8 @@
-import LazyLoad from "react-lazy-load"
-import noPoster from '../assets/no-poster.png'
 import React, { useState } from "react";
-import {ImgSkeleton} from './Skeleton'
+import noPoster from '../assets/no-poster.png';
+import { ImgSkeleton } from './Skeleton';
 
-
-function Img({ url }) {
+function Img({ url, altText = "Movie poster" }) {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -17,19 +15,20 @@ function Img({ url }) {
     setIsLoading(false);
   };
 
+  const imageSrc = url
+    ? `https://image.tmdb.org/t/p/original${url}`
+    : noPoster;
+
   return (
-    <div style={{ position: "relative", display:'flex', justifyContent:'center'}}>
-      {isLoading && <ImgSkeleton style={{ position: "absolute", top: 0, left: 0, }} />}
-      {imageError ? (
-        <img src={noPoster} alt="No poster available" />
-      ) : (
-        <img
-          src={"https://image.tmdb.org/t/p/original" + url}
-          onLoad={handleImageLoad}
-          onError={handleImageError}
-        />
-      )
-      }
+    <div style={{ position: "relative", display: 'flex', justifyContent: 'center' }}>
+      {isLoading && <ImgSkeleton style={{ position: "absolute", top: 0, left: 0 }} />}
+      <img
+        src={imageError ? noPoster : imageSrc}
+        alt={imageError ? "No poster available" : altText}
+        onLoad={handleImageLoad}
+        onError={handleImageError}
+        style={{ width: '100%', height: 'auto', display: isLoading ? 'none' : 'block' }}
+      />
     </div>
   );
 }

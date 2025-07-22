@@ -1,23 +1,39 @@
+import React from 'react'
 import logo from '../assets/logo.png'
 import './components.css'
-import {useNavigate} from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
-function Header(){
+function Header() {
+  const navigate = useNavigate()
 
-    const navigate = useNavigate()
-    return(
-        <div className="header">
-            <div className='wrapper'>
-                <div className="logo" style={{cursor:'pointer'}}>
-                    <img src={logo} onClick={()=>(navigate('/'))} alt="" />
-                </div>
-                <nav >
-                   <a onClick={()=>(navigate(`explore/movie`))}>movie</a>
-                   <a onClick={()=>(navigate('/explore/tv'))}>tv</a>
-                </nav>
-            </div>
-        </div>
-    )
+  return (
+    <header className="header">
+      <div className="wrapper">
+        <button
+          className="logo"
+          onClick={() => navigate('/')}
+          aria-label="Go to home page"
+        >
+          <img src={logo} alt="Film Critic Logo" />
+        </button>
+
+        <nav>
+          <button
+            className="nav-button"
+            onClick={() => navigate('/explore/movie')}
+          >
+            Movies
+          </button>
+          <button
+            className="nav-button"
+            onClick={() => navigate('/explore/tv')}
+          >
+            TV Shows
+          </button>
+        </nav>
+      </div>
+    </header>
+  )
 }
 
 export default Header

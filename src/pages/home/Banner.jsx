@@ -1,33 +1,43 @@
-import React, { useEffect, useState } from "react"
-import Img from '../../components/Img'
-import FetchData from '../../hooks/FetchData'
-import {BannerSkeleton} from '../../components/Skeleton'
-import {useNavigate} from 'react-router-dom'
+// src/pages/home/Banner.jsx
+import React, { useState, useEffect } from 'react';
+import FetchData from '../../hooks/FetchData';
+import { BannerSkeleton } from '../../components/Skeleton';
+import Img from '../../components/Img';
+import './home.css';
 
-function Banner(){
-    const { data, err, loading } = FetchData(`/movie/upcoming`)
-    const [image, setImage]=useState('')
-    const [value, setValue] = useState('')
+function Banner() {
+  const { data, loading } = FetchData('/trending/movie/day');
+  const [movie, setMovie] = useState(null);
 
-    const navigate = useNavigate()
+  useEffect(() => {
+    // only run once data.results exists and is an array
+    if (!loading && Array.isArray(data?.results) && data.results.length) {
+      const idx = Math.floor(Math.random() * data.results.length);
+      setMovie(data.results[idx]);
+    }
+  }, [data, loading]);
 
-    useEffect(()=>{
-        setImage(data && data?.results[Math.floor(Math.random() * data?.results?.length)]?.backdrop_path)
-    },[data])
-    
-    return (
+  // show skeleton while loading or before we pick a movie
+  if (loading || !movie) {
+    return <BannerSkeleton />;
+  }
+
+  return (
     <div className="banner">
-        {/* <div className="banaer_image">{(loading || err) ? <BannerSkeleton/> : <Img url={image} alt="Banner image" />}</div> */}
-        {(loading || err) ? <BannerSkeleton/> : <Img url={image} alt="Banner image" />}
-        <div className="mask"></div>
-        <div className="banner_contents">
-            <h2>welcome.</h2>
-            <p>Million of movies, TV shows and people to discover. Explore now.</p>
-            <form className="input_feild" onSubmit={(e) => {e.preventDefault();navigate(`/search/${value}`); setValue("")}}>
-                <input placeholder="    Search for a movie, tv show, person" value={value} onChange={(e) => (setValue(e.target.value))}></input>
-                <button type="submit">search</button>
-            </form>
-        </div>
-    </div>)
+      <Img url={movie.backdrop_path} altText={movie.title || movie.name} />
+
+      <div className="banner_contents">
+        <h1 className="banner_title">
+          {movie.title || movie.name}
+        </h1>
+        <p className="banner_overview">
+          {movie.overview}
+        </p>
+      </div>
+
+      <div className="mask" />
+    </div>
+  );
 }
-export default Banner
+
+export default Banner;

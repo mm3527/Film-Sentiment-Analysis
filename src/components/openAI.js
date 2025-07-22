@@ -1,60 +1,66 @@
 import { useState } from "react";
-import { Configuration, OpenAIApi } from "openai";
-import { useSelector } from 'react-redux'
+import { useSelector } from "react-redux";
 
-function ChatbotApp({prompt}) {
+function ChatbotApp({ prompt }) {
   const UsersApiKey = useSelector((state) => state.home.API_KEY);
   const [response, setResponse] = useState("");
   const [err, setErr] = useState(null);
-  const configuration = new Configuration({ apiKey: `${UsersApiKey}` });
-  const openai = new OpenAIApi(configuration);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const callChatGPT = async () => {
+    if (loading) return;
+    setLoading(true);
+    setErr(null);
 
     try {
-      const result = await openai.createCompletion({
-        model: "text-davinci-003",
-        prompt: `Viewers sentiment for ${prompt} movie, pos & neg 5 Points each`,
-        temperature: 0.5,
-        max_tokens: 2000,
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${UsersApiKey}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [
+            {
+              role: "user",
+              content: `Viewers sentiment for ${prompt} movie, 5 positive & 5 negative points`,
+            },
+          ],
+        }),
       });
-      setResponse(result.data.choices[0].text);
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+      const data = await res.json();
+      setResponse(data.choices[0].message.content);
     } catch (error) {
-      setErr(error);
+      setErr(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      {(response || err) ? (
+    <div className="chatbot">
+      {response || err ? (
         response ? (
           <div className="GPT_response">
-            {response.split("\n").map((x, i) => {
-              return ["positive", "Positive", "negative", "Negative"].some((el) =>
-                x.includes(el)
-              ) ? (
-                <div className="bold">{x}</div>
-              ) : (
-                <div key={i}>{x}</div>
-              );
-            })}
+            {response.split("\n").map((line, i) => (
+              <div key={i}>{line}</div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ color: "#f88" }}>
+            {err} (check your API key)
+            <button onClick={() => window.location.reload()}>Refresh</button>
           </div>
         )
-        : 
-        err && <div style={{color:'#919191d1'}}>{JSON.stringify(err.message)}(check updating your API Key)<button onClick={()=>(window.location.reload())}>refresh</button></div>
       ) : (
-        <form className="viewResponse" onSubmit={handleSubmit}>
-          <button type="submit">view response</button>
-        </form>
+        <button onClick={callChatGPT} disabled={loading}>
+          {loading ? "Analyzing…" : "View Response"}
+        </button>
       )}
     </div>
   );
-  
-  
-
-
-
 }
 
 export default ChatbotApp;
